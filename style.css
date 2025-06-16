@@ -1,0 +1,78 @@
+
+
+body{
+    background-color: #a4d728;
+    color: #212b08;
+    font-family: "WDXL Lubrifont JP N", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    
+}
+
+
+h1{
+    text-align: center;
+    font-size: 32px;
+    font-family: "WDXL Lubrifont JP N", sans-serif;
+    letter-spacing: 0.25em;
+    border-bottom: dashed 3px #5b28d7;
+    width: 100%;
+}
+h3,h2{
+    font-family: "Kosugi Maru", sans-serif;
+    letter-spacing: 0.25em;
+    
+}
+label{
+    font-family: "Kosugi Maru", sans-serif;
+    letter-spacing: 0.05em;
+}
+.main{
+    width: 60%;
+    padding-left: 40%;
+}
+.bottom{
+    border-bottom: dashed 3px #5b28d7;
+}
+.center{
+    text-align: center;
+    font-family: "Kosugi Maru", sans-serif;
+    letter-spacing: 0.05em;
+}
+@media (max-width: 480px) {
+  h1 {
+    font-size: 24px; /* スマホ用に少し小さく */
+    padding: 0 10px;
+  }
+
+  .main {
+    padding-left: 0;
+    padding: 0 10px; /* 横幅に余白を作る */
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  label, input, select, button {
+    font-size: 16px;
+    width: 100%;
+    max-width: 100%;
+    margin: 8px 0;
+  }
+
+  input, select {
+    padding: 8px;
+  }
+
+  button {
+    padding: 10px;
+    font-size: 16px;
+    background-color: #7acdf3;
+    color: #c6c1c7;
+    border: none;
+    border-radius: 6px;
+  }
+
+  .result {
+    font-size: 16px;
+  }
+}

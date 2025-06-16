@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>単位計算ツール</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=WDXL+Lubrifont+JP+N&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        label,
+        input,
+        select,
+        button {
+            display: block;
+            margin: 5px 0;
+        }
+
+        .result {
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>単位取得計算ツール</h1>
+    <div class="main">
+
+
+        <label>試験の割合はすべて同じですか？
+            <select id="uniformSelect" onchange="handleModeChange()">
+                <option value="">-- 選んでください --</option>
+                <option value="yes">はい（同じ）</option>
+                <option value="no">いいえ（異なる）</option>
+            </select>
+        </label>
+
+        <!-- 共通割合モード -->
+        <div id="uniformSection" class="hidden">
+            <label>試験の回数: <input type="number" id="uniformTestCount" value="2" min="1"></label>
+            <label>試験の割合(%): <input type="number" id="uniformTestWeight" value="70"></label>
+            <div id="uniformTestInputs"></div>
+        </div>
+
+        <!-- 個別割合モード -->
+        <div id="customSection" class="hidden">
+            <label>試験の回数: <input type="number" id="customTestCount" value="2" min="1"
+                    onchange="generateCustomInputs()"></label>
+            <div id="customTestInputs"></div>
+        </div>
+
+        <h3>課題設定</h3>
+        <label>課題の割合(100点満点換算): <input type="number" id="assignmentWeight" value="30"></label>
+        <label>課題の点数（空欄可）: <input type="number" id="assignmentScore" placeholder="未提出なら空欄"></label>
+
+        <button onclick="calculate()">計算する</button>
+
+        <div class="result" id="result"></div>
+
+    </div>
+    <script>
+        const uniformSelect = document.getElementById("uniformSelect");
+        const uniformSection = document.getElementById("uniformSection");
+        const customSection = document.getElementById("customSection");
+
+        function handleModeChange() {
+            const mode = uniformSelect.value;
+            document.getElementById("result").innerHTML = "";
+            if (mode === "yes") {
+                uniformSection.classList.remove("hidden");
+                customSection.classList.add("hidden");
+                generateUniformInputs();
+            } else if (mode === "no") {
+                customSection.classList.remove("hidden");
+                uniformSection.classList.add("hidden");
+                generateCustomInputs();
+            } else {
+                uniformSection.classList.add("hidden");
+                customSection.classList.add("hidden");
+            }
+        }
+
+        document.getElementById("uniformTestCount").addEventListener("input", generateUniformInputs);
+        document.getElementById("uniformTestWeight").addEventListener("input", generateUniformInputs);
+
+        function generateUniformInputs() {
+            const count = parseInt(document.getElementById("uniformTestCount").value);
+            const inputDiv = document.getElementById("uniformTestInputs");
+            inputDiv.innerHTML = "<h3>試験点数入力</h3>";
+            for (let i = 0; i < count; i++) {
+                inputDiv.innerHTML += `
+          <label>試験${i + 1}の点数（空欄=未受験）: 
+          <input type="number" class="testScore" placeholder="例: 80"></label>
+        `;
+            }
+        }
+
+        function generateCustomInputs() {
+            const count = parseInt(document.getElementById("customTestCount").value);
+            const inputDiv = document.getElementById("customTestInputs");
+            inputDiv.innerHTML = "<h3>試験設定</h3>";
+            for (let i = 0; i < count; i++) {
+                inputDiv.innerHTML += `
+          <label>試験${i + 1}の割合(%): <input type="number" class="testWeight" placeholder="例: 20"></label>
+          <label>試験${i + 1}の点数（空欄=未受験）: 
+          <input type="number" class="testScore" placeholder="例: 70"></label>
+          <hr>
+        `;
+            }
+        }
+
+        function calculate() {
+            const mode = uniformSelect.value;
+            let testWeights = [], testScores = [];
+
+            if (mode === "yes") {
+                const weight = parseFloat(document.getElementById("uniformTestWeight").value);
+                const scoreInputs = document.getElementsByClassName("testScore");
+                for (let i = 0; i < scoreInputs.length; i++) {
+                    testWeights.push(weight);
+                    testScores.push(scoreInputs[i].value === "" ? null : parseFloat(scoreInputs[i].value));
+                }
+            } else if (mode === "no") {
+                testWeights = Array.from(document.getElementsByClassName("testWeight")).map(el => parseFloat(el.value) || 0);
+                testScores = Array.from(document.getElementsByClassName("testScore")).map(el => el.value === "" ? null : parseFloat(el.value));
+            } else {
+                document.getElementById("result").innerHTML = "まず試験の割合が同じかどうかを選んでください。";
+                return;
+            }
+
+            const assignmentWeight = parseFloat(document.getElementById("assignmentWeight").value) || 0;
+            const assignmentScoreInput = document.getElementById("assignmentScore").value;
+            const hasAssignment = assignmentScoreInput !== "";
+            const assignmentScore = hasAssignment ? parseFloat(assignmentScoreInput) : 0;
+
+            let totalWeight = assignmentWeight;
+            let achievedScore = hasAssignment ? (assignmentScore * assignmentWeight / 100) : 0;
+
+            let missingTests = [];
+
+            for (let i = 0; i < testScores.length; i++) {
+                const weight = testWeights[i];
+                if (testScores[i] === null) {
+                    missingTests.push({ weight });
+                } else {
+                    achievedScore += testScores[i] * weight / 100;
+                }
+                totalWeight += weight;
+            }
+
+            if (totalWeight <= 0) {
+                document.getElementById("result").innerHTML = "割合の合計が0です。設定を確認してください。";
+                return;
+            }
+
+            function requiredScoreFor(target) {
+                const required = target - achievedScore;
+                const remainingWeight = missingTests.reduce((sum, t) => sum + t.weight, 0);
+
+                if (remainingWeight === 0) {
+                    return required <= 0 ? "すでに達成済み" : `不可能（残り試験なし）`;
+                }
+
+                let requiredAvg = required * 100 / remainingWeight;
+                if (requiredAvg > 100) return `不可能（必要平均 ${Math.ceil(requiredAvg)} 点）`;
+                if (requiredAvg <= 0) return `すでに達成済み`;
+                return `残り試験で平均 ${Math.ceil(requiredAvg)} 点以上必要`;
+            }
+
+            const levels = {
+                "単位(可)（60点以上）": 60,
+                "良（70点以上）": 70,
+                "優（80点以上）": 80,
+                "満点（100点）": 100
+            };
+
+            let resultHTML = `<h2>結果</h2><p>現在の加重得点: ${achievedScore.toFixed(2)} / ${totalWeight} 点</p><ul>`;
+            for (const [label, value] of Object.entries(levels)) {
+                resultHTML += `<li>${label}：${requiredScoreFor(value)}</li>`;
+            }
+            resultHTML += "</ul>";
+
+            document.getElementById("result").innerHTML = resultHTML;
+        }
+    </script>
+    <p class="bottom"></p>
+    <p class="center">計算結果に関しては一切責任を負いません</p>
+    <p class="center">単位が取れなかった場合は自己責任で再評価を頑張ってください</p>
+    <p class="center">©2025tuntun19</p>
+</body>
+
+</html>
