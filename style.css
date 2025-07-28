@@ -1,5 +1,3 @@
-
-
 body{
     background-color: #a4d728;
     color: #212b08;
@@ -38,6 +36,9 @@ label{
     text-align: center;
     font-family: "Kosugi Maru", sans-serif;
     letter-spacing: 0.05em;
+}
+h6{
+  color: #5b28d7;
 }
 @media (max-width: 480px) {
   h1 {
